@@ -17,7 +17,7 @@ package hr.in24stem;
  *  limitations under the License.
  */
 public class Constants {
-    public static final String TAG = "microbitbledemo";
+    public static final String TAG = "hr.in24stem.jumper";
     public static final String URI = "URI";
     public static final String NO_HELP = "file:///android_res/raw/no_help.html";
     public static final String MAIN_HELP = "file:///android_res/raw/main_help.html";
