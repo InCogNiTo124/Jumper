@@ -488,6 +488,7 @@ public class BleAdapterService extends Service implements Runnable {
     public IBinder onBind(Intent intent) {
         startRequestProcessor();
         keep_alive.start();
+        Log.d(Constants.TAG, "SERVICE onBind()");
         return mBinder;
     }
 
@@ -498,7 +499,7 @@ public class BleAdapterService extends Service implements Runnable {
 
     @Override
     public void onCreate() {
-
+        Log.d(Constants.TAG, "SERVICE CREATED");
         if (bluetooth_manager == null) {
             bluetooth_manager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
             if (bluetooth_manager == null) {

@@ -101,4 +101,7 @@ public class Constants {
 
     public static final String AVM_CORRECT_RESPONSE = "GOT IT!!";
 
+    public static final String EXTRA_NAME = "hr.in24stem.name";
+    public static final String EXTRA_ID = "hr.in24stem.id";
+
 }

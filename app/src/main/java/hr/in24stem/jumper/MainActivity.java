@@ -147,11 +147,11 @@ public class MainActivity extends AppCompatActivity implements ScanResultsConsum
                 }
                 MicroBit microbit = MicroBit.getInstance();
                 microbit.setBluetooth_device(device);
-                Log.d(Constants.TAG, "TO BE CONNECTED");
-//                Intent intent = new Intent(MainActivity.this, MenuActivity.class);
-//                intent.putExtra(MenuActivity.EXTRA_NAME, device.getName());
-//                intent.putExtra(MenuActivity.EXTRA_ID, device.getAddress());
-//                startActivity(intent);
+//                Log.d(Constants.TAG, "TO BE CONNECTED");
+                Intent intent = new Intent(MainActivity.this, CountActivity.class);
+                intent.putExtra(Constants.EXTRA_NAME, device.getName());
+                intent.putExtra(Constants.EXTRA_ID, device.getAddress());
+                startActivity(intent);
 
             }
         });

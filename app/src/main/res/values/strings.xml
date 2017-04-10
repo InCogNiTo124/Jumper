@@ -6,4 +6,6 @@
     <string name="device_unknown">unknown device</string>
     <string name="screen_title_main">Title</string>
     <string name="title_activity_count">CountActivity</string>
+    <string name="a_count_connected">Connected! Wanna jump?</string>
+    <string name="a_count_disconnected">Disconnected</string>
 </resources>
