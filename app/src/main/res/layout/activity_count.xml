@@ -7,7 +7,7 @@
     android:paddingRight="10dp"
     android:paddingTop="10dp"
     android:orientation="vertical"
-    tools:context=".MainActivity" >
+    tools:context=".CountActivity" >
 
     <TextView
         android:id="@+id/text_jumps"
@@ -22,6 +22,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="48sp"/>
+
+    <Button
+        android:id="@+id/b_calibration"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:text="@string/a_count_b_start"
+        android:onClick="startCalibrating"/>
 
 
 </LinearLayout>

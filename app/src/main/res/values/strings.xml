@@ -9,4 +9,8 @@
     <string name="a_count_connected">Initializing...</string>
     <string name="a_count_initialized">Ready to calibrate</string>
     <string name="a_count_disconnected">Disconnected</string>
+    <string name="a_count_done">Done</string>
+    <string name="a_count_b_start">Start calibrating</string>
+    <string name="a_count_b_re">Recalibrate</string>
+    <string name="a_count_b_calib">Calibrating...</string>
 </resources>

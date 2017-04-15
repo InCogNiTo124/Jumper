@@ -6,16 +6,19 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.app.Activity;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import hr.in24stem.Constants;
@@ -26,6 +29,8 @@ import hr.in24stem.jumper.bluetooth.BleAdapterService;
 import hr.in24stem.jumper.bluetooth.ConnectionStatusListener;
 
 import hr.in24stem.Constants;
+import hr.in24stem.jumper.statistics.AccelerometerData;
+import hr.in24stem.jumper.statistics.Statistics;
 
 public class CountActivity extends AppCompatActivity implements ConnectionStatusListener {
     private float[] accel_input = new float[3];
@@ -40,6 +45,7 @@ public class CountActivity extends AppCompatActivity implements ConnectionStatus
     private long start_time;
     private int minute_number;
     private int notification_count;
+    private boolean calibrating = false;
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
@@ -54,6 +60,7 @@ public class CountActivity extends AppCompatActivity implements ConnectionStatus
             bluetooth_le_adapter = null;
         }
     };
+    private ArrayList<AccelerometerData> calibrationData = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,6 +171,7 @@ public class CountActivity extends AppCompatActivity implements ConnectionStatus
                         }
                     }
                     displayStatus(R.string.a_count_initialized);
+                    findViewById(R.id.b_calibration).setVisibility(View.VISIBLE);
                     bluetooth_le_adapter.setNotificationsState(Utility.normaliseUUID(BleAdapterService.ACCELEROMETERSERVICE_SERVICE_UUID), Utility.normaliseUUID(BleAdapterService.ACCELEROMETERDATA_CHARACTERISTIC_UUID), true);
                     break;
                 case BleAdapterService.GATT_CHARACTERISTIC_WRITTEN:
@@ -236,12 +244,12 @@ public class CountActivity extends AppCompatActivity implements ConnectionStatus
                             accel_output[2] = accel_input[2];
                         }
 
-                        calculateAccelerations(accel_output);
-                        double pitch = Math.atan(accel_output[0] / Math.sqrt(Math.pow(accel_output[1], 2) + Math.pow(accel_output[2], 2)));
-                        double roll = Math.atan(accel_output[1] / Math.sqrt(Math.pow(accel_output[0], 2) + Math.pow(accel_output[2], 2)));
+                        processData(accel_output);
+//                        double pitch = Math.atan(accel_output[0] / Math.sqrt(Math.pow(accel_output[1], 2) + Math.pow(accel_output[2], 2)));
+//                        double roll = Math.atan(accel_output[1] / Math.sqrt(Math.pow(accel_output[0], 2) + Math.pow(accel_output[2], 2)));
                         //convert radians into degrees
-                        pitch = pitch * (180.0 / Math.PI);
-                        roll = -1 * roll * (180.0 / Math.PI);
+//                        pitch = pitch * (180.0 / Math.PI);
+//                        roll = -1 * roll * (180.0 / Math.PI);
 
 //                        showAccelerometerData(accel_output,pitch,roll);
 
@@ -261,7 +269,10 @@ public class CountActivity extends AppCompatActivity implements ConnectionStatus
         }
     };
 
-    private void calculateAccelerations(final float[] accel_output) {
+    private void processData(final float[] accel_output) {
+        if (calibrating) {
+            calibrationData.add(new AccelerometerData(accel_output));
+        }
 
         runOnUiThread(new Runnable() {
             @Override
@@ -270,9 +281,10 @@ public class CountActivity extends AppCompatActivity implements ConnectionStatus
                 for (int i = 0; i < 3; i++) {
                     a += Math.pow(accel_output[i], 2);
                 }
-                ((TextView)findViewById(R.id.text_acc)).setText(Float.toString(a));
+                ((TextView) findViewById(R.id.text_acc)).setText(Float.toString(a));
             }
         });
+
     }
 
     private void connectToDevice() {
@@ -308,5 +320,35 @@ public class CountActivity extends AppCompatActivity implements ConnectionStatus
     @Override
     public void serviceDiscoveryStatusChanged(boolean new_state) {
 
+    }
+
+    public void startCalibrating(final View view) {
+        calibrating = true;
+        ((Button)view).setEnabled(false);
+        ((Button)view).setText(R.string.a_count_b_calib);
+        new CountDownTimer(10000, 200) {
+            int secondsLeft = 0;
+            @Override
+            public void onTick(final long ms) {
+                if (Math.round((float)ms / 1000.0f) != secondsLeft) {
+                    secondsLeft = Math.round((float)ms / 1000.0f);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ((TextView)findViewById(R.id.text_jumps)).setText(String.valueOf(secondsLeft));
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onFinish() {
+                calibrating = false;
+                displayStatus(R.string.a_count_done);
+                ((Button)view).setText(R.string.a_count_b_re);
+                view.setEnabled(true);
+                Statistics.fit(calibrationData);
+            }
+        }.start();
     }
 }
