@@ -36,7 +36,7 @@ public class CountActivity extends AppCompatActivity implements ConnectionStatus
     private float[] accel_input = new float[3];
     private float[] accel_output = new float[3];
 
-    private boolean apply_smoothing = false;
+    private boolean apply_smoothing = true;
 
     private BleAdapterService bluetooth_le_adapter;
     private boolean exiting = false;
@@ -46,6 +46,10 @@ public class CountActivity extends AppCompatActivity implements ConnectionStatus
     private int minute_number;
     private int notification_count;
     private boolean calibrating = false;
+    private ArrayList<AccelerometerData> calibrationData = null;
+    private boolean calibrated = false;
+    private float JUMPS = 0.0f;
+    private boolean JUMPED = false;
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
@@ -60,7 +64,6 @@ public class CountActivity extends AppCompatActivity implements ConnectionStatus
             bluetooth_le_adapter = null;
         }
     };
-    private ArrayList<AccelerometerData> calibrationData = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -271,20 +274,44 @@ public class CountActivity extends AppCompatActivity implements ConnectionStatus
 
     private void processData(final float[] accel_output) {
         if (calibrating) {
+            if (calibrationData == null) {
+                calibrationData = new ArrayList<>();
+            }
             calibrationData.add(new AccelerometerData(accel_output));
+        } else if (calibrated) {
+            double r = Statistics.transform(new AccelerometerData(accel_output));
+            if (r >= Constants.UPPER_THRESHOLD && !JUMPED) {
+                JUMPED = true;
+                JUMPS += 0.5f;
+            } else if (r <= Constants.LOWER_THRESHOLD && JUMPED) {
+                JUMPED = false;
+//                JUMPS -= 0.5f;
+            }
+            updateJumps();
         }
 
+        if (!calibrated) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    float a = 0;
+                    for (int i = 0; i < 3; i++) {
+                        a += Math.pow(accel_output[i], 2);
+                    }
+                    ((TextView) findViewById(R.id.text_acc)).setText(Float.toString(a));
+                }
+            });
+        }
+
+    }
+
+    private void updateJumps() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                float a = 0;
-                for (int i = 0; i < 3; i++) {
-                    a += Math.pow(accel_output[i], 2);
-                }
-                ((TextView) findViewById(R.id.text_acc)).setText(Float.toString(a));
+                ((TextView)findViewById(R.id.text_acc)).setText(String.valueOf(Math.ceil(JUMPS)));
             }
         });
-
     }
 
     private void connectToDevice() {
@@ -348,6 +375,15 @@ public class CountActivity extends AppCompatActivity implements ConnectionStatus
                 ((Button)view).setText(R.string.a_count_b_re);
                 view.setEnabled(true);
                 Statistics.fit(calibrationData);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ((TextView)findViewById(R.id.text_stats)).setText("Mean: "+Statistics.MEAN + "\nDev: " + Statistics.DEVIATION);
+                        findViewById(R.id.text_stats).setVisibility(View.VISIBLE);
+                    }
+                });
+                calibrated = true;
+                calibrationData = null;
             }
         }.start();
     }

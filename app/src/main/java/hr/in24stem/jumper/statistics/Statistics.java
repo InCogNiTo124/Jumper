@@ -3,13 +3,7 @@ package hr.in24stem.jumper.statistics;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-
 import hr.in24stem.Constants;
-
-/**
- * Created by Smetko on 15.4.2017..
- */
 
 public class Statistics {
     public static double MEAN = 0.0;
@@ -31,5 +25,9 @@ public class Statistics {
         }
         DEVIATION = Math.sqrt(sum/n);
         FITTED = true;
+    }
+
+    public static double transform(AccelerometerData a) {
+        return (a.getRadius() - MEAN) / DEVIATION;
     }
 }

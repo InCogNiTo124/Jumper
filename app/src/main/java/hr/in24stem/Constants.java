@@ -104,4 +104,6 @@ public class Constants {
     public static final String EXTRA_NAME = "hr.in24stem.name";
     public static final String EXTRA_ID = "hr.in24stem.id";
 
+    public static final double UPPER_THRESHOLD = 0.65;
+    public static final double LOWER_THRESHOLD = -0.5;
 }
